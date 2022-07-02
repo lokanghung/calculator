@@ -69,7 +69,7 @@
                             {{ data.item.income == 0 ? '-' : (data.item.income + "").replace(/\d{1,3}(?=(\d{3})+$)/g, '$&,') }}
                         </template>
                         <template #cell(net)="data">
-                            {{ (data.item.net + "").replace(/\d{1,3}(?=(\d{3})+$)/g, '$&,') }}
+                            <span v-bind:style="data.item.net >= highlightNet ? 'background-color:yellow' : ''">{{ (data.item.net + "").replace(/\d{1,3}(?=(\d{3})+$)/g, '$&,') }}</span>
                         </template>
                     </b-table>
 
@@ -82,7 +82,7 @@
                             {{ parseInt(data.item.income) == NaN ? data.item.income : (data.item.income + "").replace(/\d{1,3}(?=(\d{3})+$)/g, '$&,') }}
                         </template>
                         <template #cell(net)="data">
-                            {{ parseInt(data.item.net) == NaN ? data.item.net : (data.item.net + "").replace(/\d{1,3}(?=(\d{3})+$)/g, '$&,') }}
+                            <span v-bind:style="data.item.net >= highlightNet ? 'background-color:yellow' : ''">{{ parseInt(data.item.net) == NaN ? data.item.net : (data.item.net + "").replace(/\d{1,3}(?=(\d{3})+$)/g, '$&,') }}</span>
                         </template>
                         
                         <template #cell(actions)="data">
@@ -200,6 +200,7 @@
             el: '#app', 
             data: { 
                 endDate: '2030-12-31',
+                highlightNet: 400000,
                 //0: month, 1: day
                 viewMode: 0,
                 viewModeOptions: [
