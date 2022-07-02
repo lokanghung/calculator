@@ -380,7 +380,7 @@
                                 obj = {
                                     year: moment(x.buyDateOrIncomeDate).year(),
                                     month: moment(x.buyDateOrIncomeDate).month()+1,
-                                    cost: x.cost,
+                                    cost: (x.isInit == true ? 0 : x.cost),
                                     income: 0,
                                     net: 0 - (x.isInit == true ? 0 : x.cost),
                                 }
