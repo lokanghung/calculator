@@ -367,8 +367,35 @@
                     var result = [];
                     var year = -1;
                     var month = -1;
+
+
+                    // 1. clone.
+                    var str = JSON.stringify(this.dayCostsAndIncomes);
+                    var cloneDayCostsAndIncomes = JSON.parse(str);
+
+                    // 2. add month day to indicate what month own the record.
+                    cloneDayCostsAndIncomes = cloneDayCostsAndIncomes.map(x => {
+                        if(x.type == 0){
+                            x.monthDate = x.buyDateOrIncomeDate;
+                        }else{
+                            x.monthDate = x.payDate;
+                        }
+                        
+                        return x;
+                    });
+
+                    //2. sort.
+                    cloneDayCostsAndIncomes.sort((a, b) => {
+                        if(moment(a.monthDate).isBefore(moment(b.monthDate)) == true){
+                            return -1;
+                        }else if(moment(a.monthDate).isAfter(moment(b.monthDate)) == true){
+                            return 1;
+                        }else{
+                            return 0;
+                        }
+                    });
                     
-                    result = this.dayCostsAndIncomes.reduce((preResult, x) => {
+                    result = cloneDayCostsAndIncomes.reduce((preResult, x) => {
                         //1. first obj.
                         // console.log("preResult");
                         // console.log(preResult);
@@ -378,8 +405,9 @@
                             //type = 0, cost
                             if(x.type == 0){
                                 obj = {
-                                    year: moment(x.buyDateOrIncomeDate).year(),
-                                    month: moment(x.buyDateOrIncomeDate).month()+1,
+                                    year: moment(x.monthDate).year(),
+                                    month: moment(x.monthDate).month()+1,
+                                    // cost: (x.isInit == true ? 0 : x.cost),
                                     cost: (x.isInit == true ? 0 : x.cost),
                                     income: 0,
                                     net: 0 - (x.isInit == true ? 0 : x.cost),
@@ -388,8 +416,8 @@
                             //type == 1, income
                             else{
                                 obj = {
-                                    year: moment(x.payDay).year(),
-                                    month: moment(x.payDay).month()+1,
+                                    year: moment(x.monthDate).year(),
+                                    month: moment(x.monthDate).month()+1,
                                     cost: 0,
                                     income: x.income,
                                     net: x.income,
@@ -406,8 +434,8 @@
 
                             //type = 0, cost
                             if(x.type == 0){
-                                var year = moment(x.buyDateOrIncomeDate).year();
-                                var month = moment(x.buyDateOrIncomeDate).month()+1;
+                                var year = moment(x.monthDate).year();
+                                var month = moment(x.monthDate).month()+1;
 
                                 //new year and month, add new obj.
                                 if(!(lastObj.year == year && lastObj.month == month)){
@@ -427,9 +455,9 @@
 
                             }
                             //type == 1, income
-                            else{
-                                var year = moment(x.payDate).year();
-                                var month = moment(x.payDate).month()+1;
+                            else if(x.type == 1){
+                                var year = moment(x.monthDate).year();
+                                var month = moment(x.monthDate).month()+1;
 
                                 //new year and month, add new obj.
                                 if(!(lastObj.year == year && lastObj.month == month)){
