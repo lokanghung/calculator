@@ -1,0 +1,644 @@
+<html>
+    <head>
+        <!-- vue -->
+        <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/2.6.1/vue.min.js"></script> -->
+        <script type="text/javascript" src="jspkgs/vue.min.js"></script>
+        <!-- portal-vue -->        
+        <!-- <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/portal-vue@2.1.7/dist/portal-vue.umd.js"></script> -->
+        <script type="text/javascript" src="jspkgs/portal-vue.umd.min.js"></script>
+        <!-- jquery -->
+        <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script> -->
+        <script type="text/javascript" src="jspkgs/jquery-3.6.0.min.js"></script>
+        <!-- popper -->
+        <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script> -->
+        <script type="text/javascript" src="jspkgs/popper-1.16.0/popper.min.js"></script>
+        <!-- bootstrap -->
+        <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.6.1/js/bootstrap.min.js"></script> -->
+        <!-- <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.6.1/css/bootstrap.min.css"/> -->
+        <script type="text/javascript" src="jspkgs/bootstrap-4.6.1-dist/js/bootstrap.min.js"></script>
+        <link rel="stylesheet" href="jspkgs/bootstrap-4.6.1-dist/css/bootstrap.min.css">
+        <!-- bootstrap vue -->
+        <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-vue/2.22.0/bootstrap-vue.min.js"></script> -->
+        <!-- <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-vue/2.22.0/bootstrap-vue-icons.min.css"/> -->
+        <!-- <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-vue/2.22.0/bootstrap-vue.min.css/"> -->
+
+        <script type="text/javascript" src="jspkgs/bootstrap-vue-2.22.0/bootstrap-vue.min.js"></script>
+        <script type="text/javascript" src="jspkgs/bootstrap-vue-2.22.0/bootstrap-vue-icons.min.js"></script>
+        <link rel="stylesheet" href="jspkgs/bootstrap-vue-2.22.0/bootstrap-vue.min.css">
+        <!-- moment.js -->
+        <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.3/moment.min.js"></script> -->
+        <script type="text/javascript" src="jspkgs/moment.min.js"></script>
+        <style>
+            /* body{
+                font-size:small;
+            } */
+            table{
+                font-size: small;
+            }
+            
+        </style>
+    </head>
+    <body>
+        <div id="app" class="container-fluid" style="margin-top:10px;">
+
+            <b-tabs content-class="mt-3">
+                <b-tab title="單">
+                    <b-table class="table small" sticky-header="80vh" sticky-header small striped hover dark foot-clone :items="contracts" :fields="contractsFields">
+                        <!-- cell -->
+                        <template #cell(isInit)="data">
+                            <b-form-checkbox v-model="data.item.isInit" v-on:change="storeContarcts">
+                            </b-form-checkbox>
+                        </template>
+                        <template #cell(cost)="data">
+                            {{ parseInt(data.item.cost) == NaN ? data.item.cost : (data.item.cost + "").replace(/\d{1,3}(?=(\d{3})+$)/g, '$&,') }}
+                        </template>
+                        <template #cell(income)="data">
+                            {{ parseInt(data.item.income) == NaN ? data.item.income : (data.item.income + "").replace(/\d{1,3}(?=(\d{3})+$)/g, '$&,') }}
+                        </template>
+                        <template #cell(actions)="data">
+                            <button class="btn btn-danger btn-sm" size="sm" v-on:click="removeContract(data.item.id)">刪除</button>
+                        </template>
+
+                        
+                        <!-- foot -->
+                        <template #foot(id)="data">
+                            -
+                        </template>
+                        <template #foot(buyDate)="data">
+                            <!-- <b-form-input size="sm" v-model="newContract.buyDate" type="date" style="width: 130px;"></b-form-input> -->
+                            <b-form-input size="sm" v-model="newContract.buyDate" style="width: 100px;"></b-form-input>
+                        </template>
+                        <template #foot(cost)="data">
+                            <b-form-input size="sm" v-model="newContract.cost" type="number" style="width: 90px;"></b-form-input>
+                        </template>
+                        <template #foot(incomeDate)="data">
+                            <!-- <b-form-input size="sm" v-model="newContract.incomeDate" type="date" style="width: 130px;"></b-form-input> -->
+                            <b-form-input size="sm" v-model="newContract.incomeDate" style="width: 100px;"></b-form-input>
+                        </template>
+                        <template #foot(income)="data">
+                            <b-form-input size="sm" v-model="newContract.income" type="number" style="width: 80px;"></b-form-input>
+                        </template>
+                        <template #foot(days)="data">
+                            <b-form-input size="sm" v-model="newContract.days" type="number" style="width: 80px;"></b-form-input>
+                        </template>
+                        <template #foot(isInit)="data">
+                            <b-form-checkbox v-model="newContract.isInit">
+                            </b-form-checkbox>
+                        </template>
+                        <template #foot(actions)="data">
+                            <button class="btn btn-primary btn-sm" size="sm" v-on:click="buyContract">購買</button>
+                        </template>
+                    </b-table>
+                </b-tab>
+                <b-tab title="成本與利潤" active>
+                    
+                    <!--1. view mode options -->
+                    <b-form-radio-group
+                        v-model="viewMode"
+                        :options="viewModeOptions"
+                        value-field="value"
+                        text-field="name"
+                        size="sm"
+                    ></b-form-radio-group>
+
+                    <!-- 2. view mode: month -->
+                    <!-- w-auto -->
+                    <b-table v-if='viewMode == 0' class="table small" sticky-header="80vh" sticky-header small striped hover :items="monthCostsAndIncomes" :fields="monthCostsAndIncomesFields"> 
+                        <!-- <template #cell(year)="data">
+                            {{ year }}
+                        </template>
+                        <template #cell(month)="data">
+                            {{ month }}
+                        </template> -->
+                        <template #cell(cost)="data">
+                            {{ data.item.cost == 0 ? '-' : (data.item.cost + "").replace(/\d{1,3}(?=(\d{3})+$)/g, '$&,') }}
+                        </template>
+                        <template #cell(income)="data">
+                            {{ data.item.income == 0 ? '-' : (data.item.income + "").replace(/\d{1,3}(?=(\d{3})+$)/g, '$&,') }}
+                        </template>
+                        <template #cell(net)="data">
+                            <span v-bind:style="data.item.net >= highlightNet ? 'background-color:yellow' : ''">{{ (data.item.net + "").replace(/\d{1,3}(?=(\d{3})+$)/g, '$&,') }}</span>
+                        </template>
+                    </b-table>
+
+                    <!-- 3. view mode: day -->
+                    <b-table v-if='viewMode == 1' class="table small" sticky-header="80vh" sticky-header small striped hover :items="dayCostsAndIncomes" :fields="dayCostsAndIncomesFields"> 
+                        <template #cell(cost)="data">
+                            {{ parseInt(data.item.cost) == NaN ? data.item.cost : (data.item.cost + "").replace(/\d{1,3}(?=(\d{3})+$)/g, '$&,') }}
+                        </template>
+                        <template #cell(income)="data">
+                            {{ parseInt(data.item.income) == NaN ? data.item.income : (data.item.income + "").replace(/\d{1,3}(?=(\d{3})+$)/g, '$&,') }}
+                        </template>
+                        <template #cell(net)="data">
+                            <span v-bind:style="data.item.net >= highlightNet ? 'background-color:yellow' : ''">{{ parseInt(data.item.net) == NaN ? data.item.net : (data.item.net + "").replace(/\d{1,3}(?=(\d{3})+$)/g, '$&,') }}</span>
+                        </template>
+                        
+                        <template #cell(actions)="data">
+                            <button v-if="data.item.type==1" class="btn btn-primary btn-sm" size="sm" v-on:click="showQuickBuyModal(data.item)">購買</button>
+                        </template>
+                    </b-table>
+                </b-tab>
+            </b-tabs>
+
+
+
+            <!-- quick buy modal -->
+            <b-modal
+                id="quick-buy-modal"
+                ref="modal"
+                title="購買蔬菜單"
+            >
+                <b-form-group
+                    label="購買日期"
+                >
+                    {{quickContract.buyDate}}
+                    <!-- <b-form-input
+                        v-model="quickContract.buyDate"
+                    ></b-form-input> -->
+                </b-form-group>
+
+                <b-form-group
+                    label="蔬菜單價格"
+                >
+                    <b-form-input size="sm" v-model="quickContract.cost" type="number" ></b-form-input>
+                </b-form-group>
+                <b-form-group
+                    label="第一次回金日"
+                >
+                    <!-- <b-form-input size="sm" v-model="quickContract.incomeDate" type="date"></b-form-input> -->
+                    <b-form-input size="sm" v-model="quickContract.incomeDate"></b-form-input>
+                </b-form-group>
+                <b-form-group
+                    label="回金天數"
+                >
+                    <b-form-input size="sm" v-model="quickContract.days" type="number" ></b-form-input>
+                </b-form-group>
+
+                <template #modal-footer>
+                    <div class="w-100">
+                      <b-button
+                        variant="primary"
+                        size="sm"
+                        class="float-right"
+                        v-on:click="quickBuyContract"
+                      >購買</b-button>
+
+                      <b-button
+                        size="sm"
+                        class="float-right"
+                        style="margin-right: 10px;"
+                        v-on:click="closeQuickBuyModal()"
+                        >關閉</b-button>
+                    </div>
+                </template>
+            </b-modal>
+        </div>
+    </body>
+
+    <script>
+        var app = new Vue({ 
+            el: '#app', 
+            data: { 
+                endDate: '2030-12-31',
+                highlightNet: 400000,
+                //0: month, 1: day
+                viewMode: 0,
+                viewModeOptions: [
+                    { value: 0, name: '月' },
+                    { value: 1, name: '日' },
+                ],
+                // costsAndIncomes:[],
+                dayCostsAndIncomesFields:[
+                    { key: 'id', label: '單號' },
+                    { key: 'buyDateOrIncomeDate', label: '購買日/回金日' },
+                    { key: 'payDate', label: '回金日+5' },
+                    { key: 'cost', label: '成本' },
+                    { key: 'income', label: '回金' },
+                    { key: 'net', label: '淨利' },
+                    // { key: 'actions', label: '' },
+                ],
+                monthCostsAndIncomesFields:[
+                    { key: 'year', label: '年' },
+                    { key: 'month', label: '月' },
+                    { key: 'cost', label: '成本' },
+                    { key: 'income', label: '回金' },
+                    { key: 'net', label: '淨利' },
+                ],
+                incomes: [
+                    {
+                        incomeDate: '2022-1-1'
+                        , payDate: '2022-1-6'
+                        , income: 5000
+                    },
+                    {
+                        incomeDate: '2022-1-10'
+                        , payDate: '2022-1-15'
+                        , income: 5000
+                    }
+                ],
+                contractsFields:[
+                    { key: 'id', label: '單號' },
+                    { key: 'buyDate', label: '購買日' },
+                    { key: 'cost', label: '單的價格' },
+                    { key: 'incomeDate', label: '第一次回金日' },
+                    { key: 'income', label: '回金' },
+                    { key: 'days', label: '回金天數' },
+                    { key: 'isInit', label: '初始資金' },
+                    { key: 'actions', label: '' },
+                ],
+                contracts: [
+                    {
+                          id: 1
+                        , buyDate: '2022-1-1'
+                        , incomeDate: '2022-1-1'
+                        , cost: 410000
+                        , income: 5000
+                        , days: 13
+                        , isInit: false
+                    }
+                ],
+                newContract: {
+                    id: '1'
+                    , buyDate: ''
+                    , cost: 0
+                    , incomeDate: ''
+                    , income: 0
+                    , days: 0
+                },
+                quickContract: {
+                    id: '1'
+                    , buyDate: '2022/07/01'
+                    , cost: 410000
+                    , incomeDate: '2022-7-6'
+                    , income: 7000
+                    , days: 13
+                    , isInit: false
+                },
+            },
+            computed: {
+                dayCostsAndIncomes:function(){
+                    var result = [];
+                    // return result;
+                    //1. add costs.
+                    
+                    this.contracts.forEach(x => {
+                        result.push({
+                            type: 0,
+                            id: x.id,
+                            isInit: x.isInit,
+                            buyDateOrIncomeDate: moment(x.buyDate),
+                            cost: x.cost,
+                            payDate: '-',
+                            income: '-',
+                            net: null,
+                        });
+                    });
+                    console.log(moment().format("HH:mm:ss"));
+
+                    //2. add incomes.
+                    this.contracts.forEach(x => {
+                        var incomeDate = moment(x.incomeDate);
+                        // console.log(x.income);
+                        var endDate = moment(this.endDate);
+                        while(incomeDate.isBefore(endDate) == true){
+                            result.push({
+                                type: 1,
+                                id: x.id,
+                                isInit: x.isInit,
+                                buyDateOrIncomeDate: incomeDate,
+                                cost: '-',
+                                payDate: incomeDate.clone().add(5, 'days'),
+                                income: x.income,
+                                net: null,
+                            });
+
+                            incomeDate = incomeDate.clone().add(x.days, 'days');
+                        }
+                    });
+                    console.log(moment().format("HH:mm:ss"));
+
+                    //3. sort.
+                    result.sort((a, b) => {
+                        if(a.buyDateOrIncomeDate.isBefore(b.buyDateOrIncomeDate) == true){
+                            return -1;
+                        }else if(a.buyDateOrIncomeDate.isAfter(b.buyDateOrIncomeDate) == true){
+                            return 1;
+                        }else{
+                            return 0;
+                        }
+                    });
+
+
+                    // console.log(result.filter(x => !(x.type == 0 || x.type == 1)));
+
+
+                    //4. calculate net.
+                    var net = 0;
+                    result.forEach(x => {
+                        //cost
+                        if(x.type == 0 && x.isInit == false){
+                            net = net - x.cost;
+                        }
+                        //income, type:1
+                        if(x.type == 1){
+                            net = net + parseInt(x.income);
+                        }
+                        x.net = net;
+                    });
+                    console.log(moment().format("HH:mm:ss"));
+
+                    //5. convert date to string.
+                    result = result.map(x => {
+                        x.buyDateOrIncomeDate = x.buyDateOrIncomeDate.format('yyyy-MM-DD');
+
+                        if(x.type == 1){
+                            x.payDate = x.payDate.format('yyyy-MM-DD');
+                        }
+
+                        return x;
+                    });
+                    console.log(moment().format("HH:mm:ss"));
+
+
+                    return result;
+                }
+                ,
+                monthCostsAndIncomes:function(){
+                    var result = [];
+                    var year = -1;
+                    var month = -1;
+
+
+                    // 1. clone.
+                    var str = JSON.stringify(this.dayCostsAndIncomes);
+                    var cloneDayCostsAndIncomes = JSON.parse(str);
+
+                    // 2. add month day to indicate what month own the record.
+                    cloneDayCostsAndIncomes = cloneDayCostsAndIncomes.map(x => {
+                        if(x.type == 0){
+                            x.monthDate = x.buyDateOrIncomeDate;
+                        }else{
+                            x.monthDate = x.payDate;
+                        }
+                        
+                        return x;
+                    });
+
+                    //2. sort.
+                    cloneDayCostsAndIncomes.sort((a, b) => {
+                        if(moment(a.monthDate).isBefore(moment(b.monthDate)) == true){
+                            return -1;
+                        }else if(moment(a.monthDate).isAfter(moment(b.monthDate)) == true){
+                            return 1;
+                        }else{
+                            return 0;
+                        }
+                    });
+                    
+                    result = cloneDayCostsAndIncomes.reduce((preResult, x) => {
+                        //1. first obj.
+                        // console.log("preResult");
+                        // console.log(preResult);
+                        if(preResult.length == 0){
+                            var obj = null;
+
+                            //type = 0, cost
+                            if(x.type == 0){
+                                obj = {
+                                    year: moment(x.monthDate).year(),
+                                    month: moment(x.monthDate).month()+1,
+                                    // cost: (x.isInit == true ? 0 : x.cost),
+                                    cost: (x.isInit == true ? 0 : x.cost),
+                                    income: 0,
+                                    net: 0 - (x.isInit == true ? 0 : x.cost),
+                                }
+                            }
+                            //type == 1, income
+                            else{
+                                obj = {
+                                    year: moment(x.monthDate).year(),
+                                    month: moment(x.monthDate).month()+1,
+                                    cost: 0,
+                                    income: x.income,
+                                    net: x.income,
+                                }
+                            }
+
+                            preResult.push(obj);
+                        }
+                        //2. next obj.
+                        else{
+                            let lastObj = preResult[preResult.length - 1];
+                            // console.log("lastObj");
+                            // console.log(lastObj);
+
+                            //type = 0, cost
+                            if(x.type == 0){
+                                var year = moment(x.monthDate).year();
+                                var month = moment(x.monthDate).month()+1;
+
+                                //new year and month, add new obj.
+                                if(!(lastObj.year == year && lastObj.month == month)){
+                                    lastObj = {
+                                            year: year,
+                                            month: month,
+                                            cost: 0,
+                                            income: 0,
+                                            net: lastObj.net,
+                                        };
+
+                                    preResult.push(lastObj);
+                                }
+
+                                lastObj.cost = lastObj.cost + (x.isInit == true ? 0 : x.cost);
+                                lastObj.net = lastObj.net - (x.isInit == true ? 0 : x.cost);
+
+                            }
+                            //type == 1, income
+                            else if(x.type == 1){
+                                var year = moment(x.monthDate).year();
+                                var month = moment(x.monthDate).month()+1;
+
+                                //new year and month, add new obj.
+                                if(!(lastObj.year == year && lastObj.month == month)){
+                                    lastObj = {
+                                            year: year,
+                                            month: month,
+                                            cost: 0,
+                                            income: 0,
+                                            net: lastObj.net,
+                                        };
+
+                                    preResult.push(lastObj);
+                                }
+
+                                lastObj.income = lastObj.income + x.income;
+                                lastObj.net = lastObj.net + x.income;
+                            }
+                        }
+
+                        //3. return preResult.
+                        return preResult;
+                    }, result);
+
+                    console.log("result");
+                    console.log(result);
+                    
+                    return result;
+                }
+            
+            
+            },
+            mounted: function(){
+                this.restoreContracts();
+            },
+            methods: {
+                buyContract: function(){
+
+                    var buyDate = moment(this.newContract.buyDate);
+                    var incomeDate = moment(this.newContract.incomeDate);
+                    var cost = parseInt(this.newContract.cost);
+                    var income = parseInt(this.newContract.income);
+                    var days = parseInt(this.newContract.days);
+
+                    //1. check
+                    if(buyDate.isValid() == false){
+                        this.$bvModal.msgBoxOk('請輸入正確的購買日期');
+                        return;
+                    }
+                    if(incomeDate.isValid() == false){
+                        this.$bvModal.msgBoxOk('請輸入正確的回金日期');
+                        return;
+                    }
+                    if(cost == NaN){
+                        this.$bvModal.msgBoxOk('蔬菜單價格必須為整數');
+                        return;
+                    }
+                    if(income == NaN){
+                        this.$bvModal.msgBoxOk('回金必須為整數');
+                        return;
+                    }
+                    if(days == NaN){
+                        this.$bvModal.msgBoxOk('回金天數必須為整數');
+                        return;
+                    }
+
+                    //2. add to contracts.
+                    this.contracts.push(
+                        {
+                            id: 0
+                            , buyDate: this.newContract.buyDate
+                            , cost: cost
+                            , incomeDate: this.newContract.incomeDate
+                            , income: income
+                            , days: days
+                            , isInit: this.newContract.isInit
+                        }
+                    );
+
+                    //3. resign ids.
+                    this.resignIds();
+
+                    //4. store.
+                    this.storeContarcts();
+                }
+                ,
+                removeContract: function(id){
+                    //1. remove contract.
+                    this.contracts = this.contracts.filter(x => x.id != id);
+                    //2. resign ids.
+                    this.resignIds();
+                    //4. store.
+                    this.storeContarcts();
+                }
+                ,
+                resignIds: function(){
+                    this.contracts = this.contracts.map( (x, index) => {
+                        x.id = index+1;
+                        return x;
+                    });    
+                }
+                ,
+                storeContarcts: function(){
+                    var str = JSON.stringify(this.contracts);
+                    localStorage.setItem("contracts", str);
+                }
+                ,
+                restoreContracts: function(){
+                    var str = localStorage.getItem("contracts");
+                    if(str == null){
+                        this.contracts = [];
+                        return;
+                    }
+                    this.contracts = JSON.parse(str);
+                }
+                ,
+                showQuickBuyModal: function(x){
+                    this.$bvModal.show('quick-buy-modal');
+                    this.quickContract.buyDate = x.payDate;
+                    this.quickContract.incomeDate = x.payDate;
+                    // this.quickContract.income = x.income;
+                }
+                ,
+                closeQuickBuyModal: function(){
+                    this.$bvModal.hide('quick-buy-modal');
+                }
+                ,
+                quickBuyContract: function(){
+
+                    var buyDate = moment(this.quickContract.buyDate);
+                    var incomeDate = moment(this.quickContract.incomeDate);
+                    var cost = parseInt(this.quickContract.cost);
+                    var income = parseInt(this.quickContract.income);
+                    var days = parseInt(this.quickContract.days);
+
+                    //1. check
+                    if(buyDate.isValid() == false){
+                        this.$bvModal.msgBoxOk('請輸入正確的購買日期');
+                        return;
+                    }
+                    if(incomeDate.isValid() == false){
+                        this.$bvModal.msgBoxOk('請輸入正確的回金日期');
+                        return;
+                    }
+                    if(cost == NaN){
+                        this.$bvModal.msgBoxOk('蔬菜單價格必須為整數');
+                        return;
+                    }
+                    if(income == NaN){
+                        this.$bvModal.msgBoxOk('回金必須為整數');
+                        return;
+                    }
+                    if(days == NaN){
+                        this.$bvModal.msgBoxOk('回金天數必須為整數');
+                        return;
+                    }
+
+                    //2. add to contracts.
+                    this.contracts.push(
+                        {
+                            id: 0
+                            , buyDate: this.quickContract.buyDate
+                            , cost: cost
+                            , incomeDate: this.quickContract.incomeDate
+                            , income: income
+                            , days: days
+                            , isInit: this.quickContract.isInit
+                        }
+                    );
+
+                    //3. resign ids.
+                    this.resignIds();
+
+                    //4. store.
+                    this.storeContarcts();
+
+                    //5. close modal.
+                    this.closeQuickBuyModal();
+                }
+                ,
+            }
+        }); 
+    </script>
+
+</html>
